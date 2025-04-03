@@ -31,6 +31,6 @@ export async function POST(req: NextRequest) {
 async function fakeAIService(query: string) {
   return {
     title: `Thông tin về "${query}"`,
-    content: `Đây là nội dung mô phỏng cho bệnh lý "${query}". Bạn có thể thay thế bằng dữ liệu thật từ AI.`,
+    content: `Đây là nội dung mô phỏng cho bệnh lý "${query}".`,
   };
 }
