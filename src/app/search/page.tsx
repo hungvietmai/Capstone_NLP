@@ -1,22 +1,37 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import { SearchBar } from "@/components/app/search-bar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { env } from "@/lib/env";
+
+interface DiseaseSearchItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
+interface SearchResponse {
+  results: DiseaseSearchItem[];
+  number_of_results: number;
+  query_time: number;
+}
 
 export default function Home() {
-  // Instead of using URL parameters, manage the search query in state.
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<Result | null>(null);
+  const [model, setModel] = useState("bm25");
+  const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch search results whenever the query changes.
+  // Whenever the query or model changes, fetch new results.
   useEffect(() => {
     if (!query.trim()) {
-      setResult(null);
+      setSearchResponse(null);
       setError(null);
       return;
     }
@@ -25,14 +40,17 @@ export default function Home() {
       try {
         setIsLoading(true);
         setError(null);
-        const res = await fetch("/api/search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query }),
-        });
-        const data = await res.json();
-        setResult(data.result ?? null);
-      } catch (err) {
+        const res = await fetch(
+          `${env.API_SERVICE_ENDPOINT}/search?query=${encodeURIComponent(
+            query
+          )}&model_type=${model}`
+        );
+        if (!res.ok) {
+          throw new Error("Error fetching search results");
+        }
+        const data: SearchResponse = await res.json();
+        setSearchResponse(data);
+      } catch {
         setError("Đã xảy ra lỗi trong quá trình tìm kiếm.");
       } finally {
         setIsLoading(false);
@@ -40,7 +58,7 @@ export default function Home() {
     };
 
     fetchResult();
-  }, [query]);
+  }, [query, model]);
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10">
@@ -48,7 +66,14 @@ export default function Home() {
         <h1 className="text-5xl font-extrabold text-gray-800 mb-10 tracking-tight">
           Tra Cứu Bệnh Lý
         </h1>
-        <SearchBar initialQuery={query} onSearch={setQuery} />
+        {/* Pass a callback that updates both query and model */}
+        <SearchBar
+          initialQuery={query}
+          onSearch={(q, m) => {
+            setQuery(q);
+            setModel(m);
+          }}
+        />
       </div>
       <div className="max-w-3xl mx-auto mt-10">
         {isLoading && (
@@ -65,24 +90,35 @@ export default function Home() {
             Vui lòng nhập từ khoá để tra cứu thông tin bệnh lý.
           </div>
         )}
-        {!isLoading && query && !result && (
-          <div className="text-gray-500 mt-6 text-center">
-            Không tìm thấy kết quả cho "<span className="font-semibold">{query}</span>"
+        {!isLoading &&
+          query &&
+          searchResponse &&
+          searchResponse.results.length === 0 && (
+            <div className="text-gray-500 mt-6 text-center">
+              Không tìm thấy kết quả cho &quot;
+              <span className="font-semibold">{query}</span>&quot;
+            </div>
+          )}
+        {!isLoading && searchResponse && searchResponse.results.length > 0 && (
+          <div className="space-y-4">
+            {searchResponse.results.map((item) => (
+              <Card
+                key={item.id}
+                className="border border-gray-200 shadow-md rounded-lg py-2 transition transform hover:scale-105"
+              >
+                <CardContent className="p-6">
+                  <Link href={`/disease/${item.id}`} passHref>
+                    <h1 className="text-xl font-bold text-blue-700 hover:underline cursor-pointer mb-2">
+                      {item.title}
+                    </h1>
+                  </Link>
+                  <p className="text-gray-800 text-base leading-relaxed">
+                    {item.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        )}
-        {!isLoading && result && (
-          <Card className="border border-gray-200 shadow-md rounded-lg py-2 transition transform hover:scale-105">
-            <CardContent className="p-6">
-              <Link href={`/disease/${result.title}`} passHref>
-                <h1 className="text-xl font-bold text-blue-700 hover:underline cursor-pointer mb-2">
-                  {result.title}
-                </h1>
-              </Link>
-              <div className="text-gray-800 text-base leading-relaxed whitespace-pre-line">
-                {result.content}
-              </div>
-            </CardContent>
-          </Card>
         )}
       </div>
     </div>
