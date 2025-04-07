@@ -5,7 +5,6 @@ import { SearchBar } from "@/components/app/search-bar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { env } from "@/lib/env";
 
 interface DiseaseSearchItem {
   id: string;
@@ -41,9 +40,9 @@ export default function Home() {
         setIsLoading(true);
         setError(null);
         const res = await fetch(
-          `${env.API_SERVICE_ENDPOINT}/search?query=${encodeURIComponent(
-            query
-          )}&model_type=${model}`
+          `${
+            process.env.NEXT_PUBLIC_API_SERVICE_ENDPOINT
+          }/search?query=${encodeURIComponent(query)}&model_type=${model}`
         );
         if (!res.ok) {
           throw new Error("Error fetching search results");

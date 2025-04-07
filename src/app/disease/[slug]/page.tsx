@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
-import { env } from "@/lib/env";
 
 interface DiseaseDetail {
   title: string;
@@ -22,7 +21,7 @@ export default function DiseaseDetailPage({ params }: DiseaseDetailPageProps) {
       try {
         // Fetch disease detail from the /disease endpoint using the disease id (params.slug)
         const res = await fetch(
-          `${env.API_SERVICE_ENDPOINT}/disease?id=${params.slug}`
+          `${process.env.NEXT_PUBLIC_API_SERVICE_ENDPOINT}/disease?id=${params.slug}`
         );
         if (!res.ok) {
           notFound();

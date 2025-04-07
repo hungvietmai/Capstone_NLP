@@ -28,7 +28,6 @@ export function SearchBar({ initialQuery = "", onSearch }: SearchBarProps) {
     { label: "Word2Vec", value: "word2vec" },
     { label: "HuggingFace", value: "huggingface" },
   ];
-  z;
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -36,7 +35,7 @@ export function SearchBar({ initialQuery = "", onSearch }: SearchBarProps) {
   };
 
   return (
-    <formsz
+    <form
       ref={wrapperRef}
       onSubmit={handleSubmit}
       className="w-full max-w-3xl mx-auto relative p-4"
@@ -46,7 +45,7 @@ export function SearchBar({ initialQuery = "", onSearch }: SearchBarProps) {
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="ghostzzz"
+              variant="ghost"
               type="button"
               className="flex items-center px-3"
             >
@@ -96,6 +95,6 @@ export function SearchBar({ initialQuery = "", onSearch }: SearchBarProps) {
           <Search strokeWidth={3} />
         </Button>
       </div>
-    </formsz>
+    </form>
   );
 }
